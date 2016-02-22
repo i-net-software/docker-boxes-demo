@@ -10,4 +10,4 @@ Check out this repository and run:
 
     gradle jenkins:start
 
-This will deploy the jenkins container locally. Add ```-DDOCKER_HOST=x.x.x.x:yy``` for a concrete docker running machine.
+This will deploy the jenkins container locally. Add ```-DDOCKER_HOST=x.x.x.x:yy``` for a specific docker running machine.
