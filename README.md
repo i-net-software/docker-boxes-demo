@@ -6,8 +6,10 @@ It is included and published to give an overall overview on how everything integ
 
 ## Getting started
 
-Check out this repository and run:
+    # Check out this repository
+	git clone --depth 1 https://github.com/i-net-software/docker-boxes-demo.git && cd docker-boxes-demo
 
-    gradle jenkins:start
+    # and run:
+    ./gradlew jenkins:start
 
 This will deploy the jenkins container locally. Add ```-DDOCKER_HOST=x.x.x.x:yy``` for a specific docker running machine.
