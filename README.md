@@ -13,3 +13,5 @@ It is included and published to give an overall overview on how everything integ
     ./gradlew jenkins:start
 
 This will deploy the jenkins container locally. Add ```-DDOCKER_HOST=x.x.x.x:yy``` for a specific docker running machine.
+
+Beware: this project is tightly coupled with the [docker-boxes](https://github.com/i-net-software/docker-boxes) project.
