@@ -1,0 +1,83 @@
+import jenkins.model.*
+import hudson.model.*
+import hudson.slaves.*
+
+def inst = Jenkins.getInstance()
+def slaves = inst.nodes
+
+    [
+        /* ******************************************************************************************************************
+         * MiniMac Slave Configuration
+         */
+        new DumbSlave(
+            "MiniMac",                                   // String name
+            "Just a Slave on a minimac server",          // String nodeDescription
+            "/Users/dev/HudsonHome",                     // String remoteFS
+            "1",                                         // String numExecutors
+            Node.Mode.EXCLUSIVE,                         // Mode mode
+            "osx",                                       // String labelString
+                                                         // ComputerLauncher launcher
+                        new hudson.plugins.sshslaves.SSHLauncher(
+                            "minimac",                                  // String computer
+                            22,                                         // int port,
+                            
+                            // You have to change this to an ID that is created in upodateCredentials.
+                            "docker-jenkins-user",                      // String credentialsId,
+                            "",                                         // String jvmOptions,
+                            "",                                         // String javaPath,
+                            "/bin/bash --login -c \"",                  // String prefixStartSlaveCmd,
+                            "\"",                                       // String suffixStartSlaveCmd,
+                            10,                                         // Integer launchTimeoutSeconds,
+                            1,                                          // Integer maxNumRetries,
+                            0                                           // Integer retryWaitTime
+                        ),
+            
+            new RetentionStrategy.Always(),                             // RetentionStrategy retentionStrategy
+            new LinkedList()                                            // List<? extends NodeProperty<?>> nodeProperties)
+        ),
+        /* *************************************************************************************************************** */
+        /* *************************************************************************************************************** */
+        /* *************************************************************************************************************** */
+
+        /* ******************************************************************************************************************
+         * Windows Slave Configuration
+         * The Windows machine needs to be running a bash compatible SSH Server, e.g. Cygwin.
+         */
+        new DumbSlave(
+            "Windows Slave",                             // String name
+            "Just a Slave on a Windows VM",              // String nodeDescription
+            "C:/HudsonHome",                             // String remoteFS
+            "1",                                         // String numExecutors
+            Node.Mode.EXCLUSIVE,                         // Mode mode
+            "windows",                                   // String labelString
+                                                         // ComputerLauncher launcher
+                        new hudson.plugins.sshslaves.SSHLauncher(
+                            "windows-slave",                            // String computer
+                            22,                                         // int port,
+                            "docker-jenkins-user",                      // String credentialsId,
+                            "",                                         // String jvmOptions,
+                            "",                                         // String javaPath,
+
+                            // String prefixStartSlaveCmd,
+                            // We have to start a bash wrapper shell and set the TEMP vars for other programs like WIX
+                            "bash -c \"export TMP=C:/Users/Jenkins/AppData/Local/Temp && export TEMP=C:/Users/Jenkins/AppData/Local/Temp && env && ",                                         
+                            
+                            // String suffixStartSlaveCmd,
+                            // Clean up the environment when restarting the slave
+                            " && rm -R /cygdrive/c/Users/Developer/.gradle/caches/*\"",
+                            
+                            10,                                         // Integer launchTimeoutSeconds,
+                            1,                                          // Integer maxNumRetries,
+                            0                                           // Integer retryWaitTime
+                        ),
+            
+            new RetentionStrategy.Always(),                             // RetentionStrategy retentionStrategy
+            new LinkedList()                                            // List<? extends NodeProperty<?>> nodeProperties)
+        ),
+        /* *************************************************************************************************************** */
+        /* *************************************************************************************************************** */
+        /* *************************************************************************************************************** */
+
+    ].each { node ->
+        inst.addNode( node )
+    }

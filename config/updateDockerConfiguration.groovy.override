@@ -1,0 +1,121 @@
+import jenkins.model.*
+import com.nirima.jenkins.plugins.docker.*
+import com.nirima.jenkins.plugins.docker.launcher.*
+
+if ( Jenkins.instance.pluginManager.activePlugins.find { it.shortName == "docker-plugin" } != null ) {
+    println "--> setting docker plugin"    
+
+    DockerComputerSSHLauncher sshLauncher = new DockerComputerSSHLauncher( new hudson.plugins.sshslaves.SSHConnector(
+        22,                                         // int port,
+        "docker-jenkins-user",                      // String credentialsId,
+        "",                                         // String jvmOptions,
+        "",                                         // String javaPath,
+        "",                                         // String prefixStartSlaveCmd,
+        "",                                         // String suffixStartSlaveCmd,
+        0,                                          // Integer launchTimeoutSeconds,
+        0,                                          // Integer maxNumRetries,
+        0                                           // Integer retryWaitTime
+    ) )         
+        
+    DockerTemplate javaGradle =
+    new DockerTemplate( new DockerTemplateBase(
+            "inetsoftware/ubuntu-java-gradle",                          // String image,
+            "",                                                         // String dnsString,
+            "",                                                         // String dockerCommand,
+            
+            // String volumesString,
+            "/quality-data/products/reporting/"+(System.getenv("BRANCH")?:"trunk")+":/quality-data",
+            
+            "",                                                         // String volumesFromString,
+            "",                                                         // String environmentsString,
+            "",                                                         // String lxcConfString,
+            "hudson-slave",                                             // String hostname,
+            2000,                                                       // Integer memoryLimit,
+            null,                                                       // Integer memorySwap,
+            null,                                                       // Integer cpuShares,
+            "",                                                         // String bindPorts,
+            false,                                                      // boolean bindAllPorts,
+            false,                                                      // boolean privileged,
+            false,                                                      // boolean tty,
+            ""),                                                        // String macAddress),
+        "ubuntu-build",                                                 // String labelString,
+        "",                                                             // String remoteFs,
+        "",                                                             // String remoteFsMapping,
+        "")                                                             // String instanceCapStr
+
+    javaGradle.setLauncher(sshLauncher)
+        
+    DockerTemplate javaGradleGui =
+    new DockerTemplate( new DockerTemplateBase(
+            "inetsoftware/ubuntu-java-x11",                             // String image,
+            "",                                                         // String dnsString,
+            "",                                                         // String dockerCommand,
+            
+            // String volumesString,
+            "/quality-data/products/reporting/"+(System.getenv("BRANCH")?:"trunk")+":/quality-data",
+            
+            "",                                                         // String volumesFromString,
+            "",                                                         // String environmentsString,
+            "",                                                         // String lxcConfString,
+            "hudson-slave",                                             // String hostname,
+            2000,                                                       // Integer memoryLimit,
+            null,                                                       // Integer memorySwap,
+            null,                                                       // Integer cpuShares,
+            "5900",                                                     // String bindPorts,
+            false,                                                      // boolean bindAllPorts,
+            false,                                                      // boolean privileged,
+            false,                                                      // boolean tty,
+            ""),                                                        // String macAddress),
+        "ubuntu-gui-build",                                             // String labelString,
+        "",                                                             // String remoteFs,
+        "",                                                             // String remoteFsMapping,
+        "")                                                             // String instanceCapStr
+
+    javaGradleGui.setLauncher(sshLauncher)
+        
+    DockerTemplate fedoraJavaGradle =
+    new DockerTemplate( new DockerTemplateBase(
+            "inetsoftware/fedora-java-gradle",    // String image,
+            "",                                   // String dnsString,
+            "",                                   // String dockerCommand,
+            "",                                   // String volumesString,
+            "",                                   // String volumesFromString,
+            "",                                   // String environmentsString,
+            "",                                   // String lxcConfString,
+            "hudson-slave",                       // String hostname,
+            2000,                                 // Integer memoryLimit,
+            null,                                 // Integer memorySwap,
+            null,                                 // Integer cpuShares,
+            "",                                   // String bindPorts,
+            false,                                // boolean bindAllPorts,
+            false,                                // boolean privileged,
+            false,                                // boolean tty,
+            ""),                                  // String macAddress),
+        "fedora-build",                           // String labelString,
+        "",                                       // String remoteFs,
+        "",                                       // String remoteFsMapping,
+        "")                                       // String instanceCapStr
+
+    fedoraJavaGradle.setLauncher(sshLauncher)
+    
+    def listOfContainers = [javaGradle, javaGradleGui, fedoraJavaGradle]
+
+    def dockerServer = new DockerCloud(
+        "fileserver",
+        listOfContainers,
+        "http://localhost:4243",
+        15,
+        0,
+        0,
+        "docker-jenkins-user",
+        "")
+
+    //////////////////////////// ADDING DOCKER CLOUDS //////////////////////////////
+    def cloudList = Jenkins.instance.clouds
+
+    // avoid duplicate cloud provider on the cloud list
+    if ( cloudList.getByName(dockerServer.name) ) {
+        cloudList.remove(cloudList.getByName(dockerServer.name))
+    }
+    cloudList.add(dockerServer)
+}

@@ -1,0 +1,87 @@
+import de.gesellix.gradle.docker.tasks.*
+
+/*********************************************************************************
+ * Set up the environment for the docker-gradle-plugin
+ ********************************************************************************/
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+}
+
+plugins {
+    id "de.gesellix.docker" version "2016-02-08T22-29-47"
+}
+
+/*********************************************************************************
+ * Configuration of the Branch to use, checkout and so on.
+ ********************************************************************************/
+def BRANCH = System.getProperty('BRANCH')?:'master'
+
+// Need to use the full string because we need the authentication as well
+// def SVN_ROOT = "svn://user:password@svn-url"
+
+// Use this for the demo
+def SVN_ROOT = "https://github.com/i-net-software/docker-boxes-demo"
+
+println "##################################################################"
+println "Branch name that will be used for checkout: " + BRANCH
+println "SVN Root that will be used: " + SVN_ROOT
+println "##################################################################"
+def jenkinsContainer = group + (BRANCH!='master'?'-' + BRANCH:'') // Name of the container, only add Branch if not trunk
+
+docker {
+    dockerHost = System.getProperty('DOCKER_HOST') ?: 'http://localhost:4243'
+}
+
+// Stops the currently defined container
+task stop(type: DockerStopTask) {
+    containerId = jenkinsContainer
+}
+
+// Remove the currently defined container
+task remove(type: DockerRmTask) {
+    dependsOn stop
+    containerId = jenkinsContainer
+}
+
+// Start a Jenkins using a specified branch
+task start(type: DockerRunTask) {
+
+    dependsOn remove
+    imageName = "inetsoftware/jenkins-autosetup"
+    containerName = jenkinsContainer
+    containerConfiguration = [
+        "HostConfig"  : [
+/*
+        "ExposedPorts": ["8080/tcp": [:], "50000/tcp": [:]],
+            "PortBindings": [
+                "8080/tcp": [
+                    ["HostPort": [:] ]
+                ],
+            ],
+/*/
+            "PublishAllPorts": true,
+//*/
+            "RestartPolicy" : [
+                "Name": "always",
+            ],
+        ],
+        "Env" : [
+            "AUTOSETUP="+SVN_ROOT,
+            "BRANCH="+BRANCH,
+
+            // Specifies data for the consul registry, namely the service name
+            "SERVICE_50000_IGNORE=true",
+            "SERVICE_8080_NAME=" + jenkinsContainer,
+            // and the url extension using the tag
+            "SERVICE_8080_TAGS=jenkins",
+            "JENKINS_OPTS=--prefix=/" + jenkinsContainer,
+            // Restrict memory of the VM
+            "JAVA_OPTS=-Xmx512m",
+        ],
+        "Hostname" : jenkinsContainer,
+    ]
+}

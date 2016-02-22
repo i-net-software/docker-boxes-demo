@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.plugins.xvnc.Xvnc_-DescriptorImpl plugin="xvnc@1.23">
+  <!-- this is how the ubuntu-gui-slave can be connected via XVNC -->
+  <xvnc>x11vnc -forever -geometry 1200x800 -display :$DISPLAY_NUMBER -shared -nopw -noxfixes -noxdamage</xvnc>
+  <minDisplayNumber>1</minDisplayNumber>
+  <maxDisplayNumber>1</maxDisplayNumber>
+  <skipOnWindows>true</skipOnWindows>
+  <cleanUp>true</cleanUp>
+  <allocators/>
+</hudson.plugins.xvnc.Xvnc_-DescriptorImpl>
