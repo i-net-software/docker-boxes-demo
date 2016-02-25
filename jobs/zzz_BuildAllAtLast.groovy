@@ -16,6 +16,7 @@ job('___ Build All ___') {
                                                             // Create List of Jobs
         downstreamParameterized {
         
+            println "Jobs collected: " + AllJobsCollector.getJobList()
             AllJobsCollector.jobList.sort { a, b ->         // Get and sort the Jobs from the Collector
                 a.key <=> b.key }.each { prioritoy, jobs ->
 
