@@ -6,7 +6,7 @@ import com.inet.dsl.*
  * Jobs that are missing will be removed
  */
 job('Seed Job') {
-    label( "ubuntu-build" )                                // Only run on the master, since this is the instance to update
+    label( "master" )                                // Only run on the master, since this is the instance to update
     logRotator {                                           // Keep logs for the last 5 runs
         numToKeep 5
     }
@@ -17,11 +17,14 @@ job('Seed Job') {
         scm 'H 1 * * 1-5'                                   // Build regularly
     }
     steps {
+/*
         gradle {                                            // Run a clean gradle build to check for errors in the job definition
             tasks( 'clean test' )                           
             useWrapper( false )
             rootBuildScriptDir( "\${workspace}/docker-boxes-demo" )
         }
+/*/
+//*/        
         dsl {                                               // Run the DSL.
             external(
 
