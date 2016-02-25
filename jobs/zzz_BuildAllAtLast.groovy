@@ -18,7 +18,8 @@ job('___ Build All ___') {
         
             println "Jobs collected: " + AllJobsCollector.getJobList()
             AllJobsCollector.jobList.sort { a, b ->         // Get and sort the Jobs from the Collector
-                a.key <=> b.key }.each { prioritoy, jobs ->
+                JobType.valueOf( a.key ) <=> JobType.valueOf( b.key )
+            }.each { prioritoy, jobs ->
 
                     trigger( jobs.join(', ') ) {            // Create a trigger of all the jobs for this priority
                         block {
